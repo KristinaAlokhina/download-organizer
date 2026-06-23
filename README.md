@@ -1,7 +1,7 @@
 An automated Python script designed to clean up and structure the Windows Downloads folder by automatically categorizing files.
 
 ## 🚀 Features
-- Automatic Sorting: Scans the Downloads folder and groups files by type (Images, Documents, Scripts, Installers).
+- Automatic Sorting: Scans the Downloads folder and groups files by type (Images, Documents, Scripts, Installers, Musik, Videos).
 - Dynamic Path Detection: Automatically detects the active Windows user's path using the `USERPROFILE` system environment variable.
 - Standalone App: Can be compiled into a single `.exe` executable using PyInstaller, removing any Python environment dependencies.
 
