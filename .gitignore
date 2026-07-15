@@ -1,3 +1,20 @@
+# PyInstaller-Ausgabeverzeichnisse und Spezifikationen
 build/
-__pycache__/
+dist/
 *.spec
+
+# Python-Bytecode und temporärer Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Betriebssystem-Dateien (Metadaten)
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Anwendungs-Logs 
+Download_Organizer_Logs/
+System_Monitor_Logs/
+sort_report.txt
