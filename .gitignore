@@ -1,20 +1,35 @@
-# PyInstaller-Ausgabeverzeichnisse und Spezifikationen
-build/
-dist/
-*.spec
-
-# Python-Bytecode und temporärer Cache
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
+*$py.class
 
-# Betriebssystem-Dateien (Metadaten)
-.DS_Store
+*.so
+
+# Distribution / packaging (PyInstaller)
+bin/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Operating System Files
 Thumbs.db
-desktop.ini
+Desktop.ini
+.DS_Store
 
-# Anwendungs-Logs 
-Download_Organizer_Logs/
-System_Monitor_Logs/
-sort_report.txt
+# Local Logs
+*.txt
+!README.md
