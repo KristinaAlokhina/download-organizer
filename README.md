@@ -1,89 +1,66 @@
-# Download Organizer
+# Download Organizer & Automator
 
 <p align="center">
   <a href="#-deutsch">Deutsch</a> • 
   <a href="#-english">English</a>
 </p>
 
-
 ---
 
 ## 🇩🇪 Deutsch
 
-
 ### 🚀 Funktionen
-* **Automatische Sortierung**: Scannt den Download-Ordner und sortiert Mediendateien, Dokumente und Installer in entsprechende Unterordner.
-* **Erweiterte Protokollierung**: Erstellt detaillierte Berichte im Ordner `Download_Organizer_Logs` im Benutzerverzeichnis.
-* **Prozess-Statistik**: Zählt erfolgreiche, nicht unterstützte und fehlgeschlagene Dateiverschiebungen für maximale Transparenz.
-* **Sicherheits-Schutz**: Ignoriert automatisch die aktuell ausgeführte Skript- oder `.exe`-Datei, um Fehler zu vermeiden.
-* **Dynamic Path Detection**: Erkennt den Windows-Benutzerpfad automatisch über die Umgebungsvariable `USERPROFILE`.
+* **Duale Ausführungsmodi**: Der Benutzer kann interaktiv zwischen einer einmaligen Bereinigung oder einer permanenten Hintergrundüberwachung wählen.
+* **Permanente Überwachung**: Im Hintergrundmodus überprüft das Skript das Verzeichnis vollautomatisch alle 10 Sekunden auf neue Dateien.
+* **Native Windows-Benachrichtigungen**: Nutzt die integrierte Windows-API (`ctypes`), um nach erfolgreicher Sortierung native Infoboxen direkt im Vordergrund anzuzeigen.
+* **Ressourceneffizientes Logging**: Erstellt detaillierte Berichte im System-Home-Verzeichnis, unterdrückt jedoch leere Log-Einträge im Hintergrundmodus, um Speicherplatz zu sparen.
+* **Sicherer Datei-Schutz**: Erkennt dynamisch das aktuell ausgeführte Skript oder die kompilierte Anwendung und schützt sich selbst vor unbeabsichtigtem Verschieben.
 
 ### 🛠️ Technologien
-* Python 3.10+
-* Integrierte Module: `os`, `shutil`, `sys`, `datetime`
-* Externe Bibliotheken: `PyInstaller` (optional für den Build-Prozess)
-
-### 📂 Struktur der Dateisortierung
-Das Skript sortiert Dateien nach folgenden Kategorien:
-* **Bilder**: `.jpg`, `.jpeg`, `.png`, `.gif`, `.svg`
-* **Dokumente**: `.pdf`, `.docx`, `.xlsx`, `.txt`, `.pptx`
-* **Skripte**: `.py`, `.cs`, `.sh`, `.bat`
-* **Installer**: `.exe`, `.msi`, `.zip`, `.rar`
-* **Musik**: `.mp3`, `.wav`, `.flac`, `.aac`
-* **Videos**: `.mp4`, `.avi`, `.mkv`, `.mov`
+* Python 3.x
+* Integrierte Systemmodule: `os`, `shutil`, `sys`, `time`, `datetime`
+* Windows-API Integration: `ctypes` (Keine Installation von Drittanbieter-Paketen erforderlich)
 
 ### 📦 Installation & Start
 1. Repository klonen:
    ```bash
-   git clone https://github.com/KristinaAlokhina/download-organizer
+   git clone https://[github.com](https://github.com/KristinaAlokhina/download-organizer)
    ```
-2. Skript ausführen:
+2. In den Projektordner wechseln:
+   ```bash
+   cd Organizer
+   ```
+3. Skript ausführen:
    ```bash
    python Organizer.py
    ```
-
-Alternativ kann das Skript als eigenständige Windows-Anwendung kompiliert werden:
-```bash
-python -m PyInstaller --onefile --noconsole Organizer.py
-```
 
 ---
 
 ## 🇺🇸 English
 
-
 ### 🚀 Features
-* **Automatic Sorting**: Scans the Downloads folder and groups media files, documents, and installers into designated subfolders.
-* **Advanced Logging**: Generates detailed sorting reports inside the `Download_Organizer_Logs` directory in the user profile.
-* **Process Statistics**: Tracks successful, unsupported, and failed file movements for full transparency.
-* **Self-Protection**: Automatically ignores the currently running script or `.exe` file to prevent errors.
-* **Dynamic Path Detection**: Automatically detects the Windows user path using the `USERPROFILE` environment variable.
+* **Dual Execution Modes**: Interactive selection between a single-run optimization and a continuous background monitoring loop.
+* **Continuous Directory Watch**: In background mode, the automation script scans the directory autonomously every 10 seconds.
+* **Native Windows Notifications**: Utilizes the built-in Windows API (`ctypes`) to throw clean, native modal message boxes upon completing actions.
+* **Optimized Logging System**: Stores analytical run logs in the user's home path, preventing empty report cluttering when no files are moved.
+* **Self-Preservation Guard**: Dynamically resolves the active script name or packaged runtime environment to completely protect itself from being relocated.
 
 ### 🛠️ Technologies
-* Python 3.10+ (Built with modern built-in libraries)
-* Built-in modules: `os`, `shutil`, `sys`, `datetime`
-* External libraries: `PyInstaller` (optional for the build process)
-
-### 📂 File Sorting Structure
-The script categorizes files based on the following extensions:
-* **Images (Bilder)**: `.jpg`, `.jpeg`, `.png`, `.gif`, `.svg`
-* **Documents (Dokumente)**: `.pdf`, `.docx`, `.xlsx`, `.txt`, `.pptx`
-* **Scripts (Skripte)**: `.py`, `.cs`, `.sh`, `.bat`
-* **Installers (Installer)**: `.exe`, `.msi`, `.zip`, `.rar`
-* **Music (Musik)**: `.mp3`, `.wav`, `.flac`, `.aac`
-* **Videos (Videos)**: `.mp4`, `.avi`, `.mkv`, `.mov`
+* Python 3.x
+* Standard core modules: `os`, `shutil`, `sys`, `time`, `datetime`
+* Windows-API Integration: `ctypes` (Zero third-party installations needed)
 
 ### 📦 Installation & Setup
 1. Clone the repository:
    ```bash
-   git clone https://github.com/KristinaAlokhina/download-organizer
+   git clone https://[github.com](https://github.com/KristinaAlokhina/download-organizer)
    ```
-2. Run the script:
+2. Navigate to the project directory:
+   ```bash
+   cd Organizer
+   ```
+3. Run the script:
    ```bash
    python Organizer.py
    ```
-
-Alternatively, compile the script into a standalone Windows executable:
-```bash
-python -m PyInstaller --onefile --noconsole Organizer.py
-```
