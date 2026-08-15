@@ -65,6 +65,7 @@ def sort_files(target_directory):
         if filename == current_script_name:
             continue
 
+        # ЗДЕСЬ ИСПРАВЛЕНО: добавлен индекс [1]
         file_ext = os.path.splitext(filename)[1].lower()
         kategorie_gefunden = False
 
