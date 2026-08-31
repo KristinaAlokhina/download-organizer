@@ -10,11 +10,12 @@
 ## 🇩🇪 Deutsch
 
 ### 🚀 Funktionen
-* **Duale Ausführungsmodi**: Der Benutzer kann interaktiv zwischen einer einmaligen Bereinigung oder einer permanenten Hintergrundüberwachung wählen.
+* **Duale Ausführungsmodi**: Interaktive Auswahl zwischen einer einmaligen Bereinigung oder einer permanenten Hintergrundüberwachung.
 * **Permanente Überwachung**: Im Hintergrundmodus überprüft das Skript das Verzeichnis vollautomatisch alle 10 Sekunden auf neue Dateien.
-* **Native Windows-Benachrichtigungen**: Nutzt die integrierte Windows-API (`ctypes`), um nach erfolgreicher Sortierung native Infoboxen direkt im Vordergrund anzuzeigen.
-* **Ressourceneffizientes Logging**: Erstellt detaillierte Berichte im System-Home-Verzeichnis, unterdrückt jedoch leere Log-Einträge im Hintergrundmodus, um Speicherplatz zu sparen.
-* **Sicherer Datei-Schutz**: Erkennt dynamisch das aktuell ausgeführte Skript oder die kompilierte Anwendung und schützt sich selbst vor unbeabsichtigtem Verschieben.
+* **Dateizugriffsprüfung**: Verhindert Fehler beim Verschieben, indem aktiv geprüft wird, ob eine Datei noch heruntergeladen oder vom System blockiert wird.
+* **Native Windows-Benachrichtigungen**: Nutzt die integrierte Windows-API (`ctypes`), um native Infoboxen direkt im Vordergrund anzuzeigen.
+* **Ressourceneffizientes Logging**: Erstellt detaillierte Berichte im System-Home-Verzeichnis, unterdrückt jedoch leere Log-Einträge im Hintergrundmodus.
+* **Sicherer Datei-Schutz**: Erkennt dynamisch das aktuell ausgeführte Skript und schützt sich selbst vor unbeabsichtigtem Verschieben.
 
 ### 🛠️ Technologien
 * Python 3.x
@@ -24,16 +25,17 @@
 ### 📦 Installation & Start
 1. Repository klonen:
    ```bash
-   git clone https://[github.com](https://github.com/KristinaAlokhina/download-organizer)
+   git clone https://github.com/KristinaAlokhina/download-organizer
    ```
 2. In den Projektordner wechseln:
    ```bash
    cd Organizer
    ```
-3. Skript ausführen:
+3. Skript standardmäßig ausführen:
    ```bash
    python Organizer.py
    ```
+4. **Tipp (Unsichtbarer Hintergrundmodus):** Benennen Sie die Datei in `Organizer.pyw` um und starten Sie sie. Das Skript läuft komplett ohne Konsolenfenster im Hintergrund.
 
 ---
 
@@ -42,9 +44,10 @@
 ### 🚀 Features
 * **Dual Execution Modes**: Interactive selection between a single-run optimization and a continuous background monitoring loop.
 * **Continuous Directory Watch**: In background mode, the automation script scans the directory autonomously every 10 seconds.
-* **Native Windows Notifications**: Utilizes the built-in Windows API (`ctypes`) to throw clean, native modal message boxes upon completing actions.
+* **File Lock Verification**: Actively checks if a file is still downloading or locked by the system to prevent transfer errors.
+* **Native Windows Notifications**: Utilizes the built-in Windows API (`ctypes`) to throw clean, native modal message boxes.
 * **Optimized Logging System**: Stores analytical run logs in the user's home path, preventing empty report cluttering when no files are moved.
-* **Self-Preservation Guard**: Dynamically resolves the active script name or packaged runtime environment to completely protect itself from being relocated.
+* **Self-Preservation Guard**: Dynamically resolves the active script name to completely protect itself from being relocated.
 
 ### 🛠️ Technologies
 * Python 3.x
@@ -54,13 +57,14 @@
 ### 📦 Installation & Setup
 1. Clone the repository:
    ```bash
-   git clone https://[github.com](https://github.com/KristinaAlokhina/download-organizer)
+   git clone https://github.com/KristinaAlokhina/download-organizer
    ```
 2. Navigate to the project directory:
    ```bash
    cd Organizer
    ```
-3. Run the script:
+3. Run the script normally:
    ```bash
    python Organizer.py
    ```
+4. **Tip (Invisible Background Mode):** Rename the file to `Organizer.pyw` and execute it. The script will run completely hidden without opening a console window.
