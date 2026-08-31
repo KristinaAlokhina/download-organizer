@@ -19,6 +19,7 @@ Thumbs.db
 desktop.ini
 .DS_Store
 
-# Local Logs & Reports 
-*.txt
+# Lokale Logs & Berichte
+Download_Organizer_Logs/
 *.log
+sort_report.txt
