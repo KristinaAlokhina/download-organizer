@@ -8,7 +8,7 @@ build/
 dist/
 *.spec
 
-# Virtual Environments (на случай, если используете venv)
+# Virtual Environments 
 .venv/
 venv/
 ENV/
@@ -19,6 +19,6 @@ Thumbs.db
 desktop.ini
 .DS_Store
 
-# Local Logs & Reports (если логи создаются внутри папки проекта)
+# Local Logs & Reports 
 *.txt
 *.log
