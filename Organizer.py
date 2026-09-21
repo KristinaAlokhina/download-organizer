@@ -90,7 +90,6 @@ class DownloadOrganizerGUI:
         self.log_area.tag_config('error', foreground='#e74c3c')
         self.log_area.tag_config('info', foreground='#3498db')
 
-    # --- Protokollierungsfunktionen im GUI ---
     def append_log(self, prefix, message, tag=None):
         """Fügt eine Zeile sicher in das Textfeld ein."""
         timestamp = datetime.now().strftime('%H:%M:%S')
@@ -102,7 +101,6 @@ class DownloadOrganizerGUI:
     def log_error(self, msg):   self.append_log("✖ FEHLER", msg, 'error')
     def log_info(self, msg):    self.append_log("ℹ INFO", msg, 'info')
 
-    # --- Logik des Sortierers ---
     def is_file_ready(self, file_path):
         try:
             with open(file_path, 'rb'): return True
@@ -166,7 +164,6 @@ class DownloadOrganizerGUI:
             
         return stats["erfolgreich"]
 
-    # --- Steuerung der Ausführungsmodi ---
     def run_single_sort(self):
         """Handler für den Button 'Jetzt sortieren'."""
         self.status_lbl.config(text="Status: Einmalige Sortierung wird ausgeführt...")
@@ -180,36 +177,30 @@ class DownloadOrganizerGUI:
     def toggle_monitoring(self):
         """Schaltet den Hintergrundmodus um (Start/Stopp)."""
         if not self.is_monitoring:
-            # Hintergrundüberwachung starten
             self.is_monitoring = True
             self.btn_toggle_monitor.config(text="⏹ Überwachung stoppen", style='Stop.TButton')
             self.btn_sort_now.config(state=tk.DISABLED)
             self.log_info("Hintergrundüberwachung mit einem Intervall von 10 Sekunden gestartet.")
             
-            # Endlosschleife in einem separaten Thread starten, damit das GUI nicht einfriert
             self.monitor_thread = threading.Thread(target=self.monitoring_loop, daemon=True)
             self.monitor_thread.start()
         else:
-            # Hintergrundüberwachung stoppen
             self.is_monitoring = False
             self.btn_toggle_monitor.config(text="🔄 Hintergrundmodus starten", style='Start.TButton')
             self.btn_sort_now.config(state=tk.NORMAL)
             self.status_lbl.config(text="Status: Hintergrundüberwachung gestoppt.")
             self.log_info("Hintergrundüberwachung deaktiviert.")
 
-       def monitoring_loop(self):
+    def monitoring_loop(self):
         """Überwachungsschleife, die im Hintergrund läuft."""
         while self.is_monitoring:
-            
-                        for _ in range(100):
+            for _ in range(100):
                 if not self.is_monitoring:
                     break
-                # Jede Sekunde den Countdown-Text aktualisieren
-                if _% 10 == 0:
-                    countdown = 10 - (_//10)
+                if _ % 10 == 0:
+                    countdown = 10 - (_ // 10)
                     self.status_lbl.config(text=f"Status: Überwachung aktiv (Nächste Prüfung in {countdown} Sek...)")
                 time.sleep(0.1)
-
             
             if not self.is_monitoring:
                 break
@@ -218,7 +209,6 @@ class DownloadOrganizerGUI:
             count = self.execute_sorting(silent_on_empty=True)
             if count > 0:
                 self.log_info(f"Hintergrundmodus: Automatisch aufgeräumte Dateien: {count}")
-
 
 if __name__ == "__main__":
     root = tk.Tk()
