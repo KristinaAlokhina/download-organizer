@@ -51,7 +51,7 @@ Es wird lediglich eine installierte Python 3.x Umgebung benötigt (Tkinter ist s
 
 1. Repository klonen oder Skript herunterladen:
    ```bash
-   git clone https://[github.com](https://github.com/KristinaAlokhina/download-organizer)
+   git clone https://github.comhttps://github.com/KristinaAlokhina/download-organizer
    ```
 2. In den Projektordner wechseln:
    ```bash
@@ -96,7 +96,7 @@ Only a standard local installation of Python 3.x is required (Tkinter comes pre-
 
 1. Clone the repository or download the script file:
    ```bash
-   git clone https://[github.com](https://github.com/KristinaAlokhina/download-organizer)
+   git clone https://github.comhttps://github.com/KristinaAlokhina/download-organizer
    ```
 2. Navigate into the application workspace:
    ```bash
