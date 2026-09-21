@@ -2,195 +2,225 @@ import os
 import shutil
 import sys
 import time
-import ctypes
+import threading
 from datetime import datetime
+import tkinter as tk
+from tkinter import ttk, scrolledtext
 
-# Windows-API-Konstanten fuer die Anzeige von MessageBoxen
-MB_OK = 0x00000000
-MB_YESNOCANCEL = 0x00000003
-MB_ICONINFORMATION = 0x00000040
-MB_ICONERROR = 0x00000010
-MB_SETFOREGROUND = 0x00010000
+class DownloadOrganizerGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Download Organizer v3.0")
+        self.root.geometry("650x450")
+        self.root.minsize(550, 350)
+        
+        # Steuerungsvariablen
+        self.is_monitoring = False
+        self.target_dir = self.get_target_directory()
+        
+        # Design-Stile konfigurieren
+        self.setup_styles()
+        # Visuelle Elemente erstellen
+        self.create_widgets()
+        
+        # Begrüßungsnachricht ausgeben
+        self.log_info(f"Programm initialisiert. Zielverzeichnis: {self.target_dir}")
 
-# Rueckgabewerte der Windows-MessageBox zur Erkennung des gedrueckten Buttons
-IDYES = 6
-IDNO = 7
-IDCANCEL = 2
+    def get_target_directory(self):
+        """Ermittelt den Pfad zum Download-Ordner des Benutzers."""
+        user_profile = os.environ.get("USERPROFILE")
+        if not user_profile:
+            return os.path.expanduser("~/Downloads")
+        return os.path.join(user_profile, "Downloads")
 
-def show_notification(title, message, is_error=False):
-    """Zeigt eine native Windows-MessageBox im Vordergrund an."""
-    # Bestimmung des Icons basierend auf dem Fehlertyp
-    icon = MB_ICONERROR if is_error else MB_ICONINFORMATION
-    # Aufruf der Windows-API-Funktion fuer das native Dialogfenster
-    ctypes.windll.user32.MessageBoxW(0, message, title, MB_OK | icon | MB_SETFOREGROUND)
+    def setup_styles(self):
+        """Konfiguriert moderne Flat-Styles für Buttons und Panels."""
+        style = ttk.Style()
+        style.theme_use('clam')
+        style.configure('TFrame', background='#f5f6f8')
+        style.configure('TLabel', background='#f5f6f8', font=('Segoe UI', 10))
+        style.configure('Header.TLabel', font=('Segoe UI', 12, 'bold'))
+        style.configure('Status.TLabel', font=('Segoe UI', 10, 'italic'))
+        
+        # Button-Stile
+        style.configure('Action.TButton', font=('Segoe UI', 10, 'bold'), foreground='white', borderwidth=0)
+        style.configure('Sort.TButton', background='#2ecc71')
+        style.map('Sort.TButton', background=[('active', '#27ae60')])
+        style.configure('Start.TButton', background='#3498db')
+        style.map('Start.TButton', background=[('active', '#2980b9')])
+        style.configure('Stop.TButton', background='#e74c3c')
+        style.map('Stop.TButton', background=[('active', '#c0392b')])
 
-def is_file_ready(file_path):
-    """Prueft, ob die Datei vollstaendig geschrieben wurde und nicht blockiert ist."""
-    try:
-        # Versucht die Datei im Binarmodus zu oeffnen, um den Zugriff zu testen
-        with open(file_path, 'rb'):
-            return True
-    except IOError:
-        # Wenn der Zugriff verweigert wird, wird die Datei noch vom System blockiert
-        return False
+    def create_widgets(self):
+        """Erstellt das Layout der visuellen Elemente der Anwendung."""
+        self.root.configure(background='#f5f6f8')
+        
+        # Hauptcontainer
+        main_frame = ttk.Frame(self.root, padding="15")
+        main_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # Titel und Pfad
+        header_lbl = ttk.Label(main_frame, text="Download Organizer", style='Header.TLabel')
+        header_lbl.pack(anchor=tk.W, pady=(0, 2))
+        
+        path_lbl = ttk.Label(main_frame, text=f"Überwachtes Verzeichnis: {self.target_dir}", foreground='#7f8c8d')
+        path_lbl.pack(anchor=tk.W, pady=(0, 15))
+        
+        # Aktionsleiste mit Buttons
+        btn_frame = ttk.Frame(main_frame)
+        btn_frame.pack(fill=tk.X, pady=(0, 15))
+        
+        self.btn_sort_now = ttk.Button(btn_frame, text="⚡ Jetzt sortieren", style='Sort.TButton', command=self.run_single_sort)
+        self.btn_sort_now.pack(side=tk.LEFT, padx=(0, 10))
+        
+        self.btn_toggle_monitor = ttk.Button(btn_frame, text="🔄 Hintergrundmodus starten", style='Start.TButton', command=self.toggle_monitoring)
+        self.btn_toggle_monitor.pack(side=tk.LEFT)
+        
+        # Statusanzeige
+        self.status_lbl = ttk.Label(main_frame, text="Status: Warten auf Benutzeraktion...", style='Status.TLabel', foreground='#555')
+        self.status_lbl.pack(anchor=tk.W, pady=(0, 5))
+        
+        # Log-Konsole (Ausgabefeld für Aktionen)
+        self.log_area = scrolledtext.ScrolledText(main_frame, wrap=tk.WORD, font=('Consolas', 10), bg='#1e1e1e', fg='#ffffff')
+        self.log_area.pack(fill=tk.BOTH, expand=True)
+        
+        # Tags für die Farbkodierung des Konsolentextes
+        self.log_area.tag_config('success', foreground='#2ecc71')
+        self.log_area.tag_config('warn', foreground='#f1c40f')
+        self.log_area.tag_config('error', foreground='#e74c3c')
+        self.log_area.tag_config('info', foreground='#3498db')
 
-def sort_files(target_directory):
-    # Definition der Zielordner und den dazugehoerigen Dateiendungen
-    FILE_TYPES = {
-        'Bilder': ['.jpg', '.jpeg', '.png', '.gif', '.svg'],
-        'Dokumente': ['.pdf', '.docx', '.xlsx', '.txt', '.pptx'],
-        'Skripte': ['.py', '.cs', '.sh', '.bat'],
-        'Installer': ['.exe', '.msi', '.zip', '.rar'],
-        'Musik': ['.mp3', '.wav', '.flac', '.aac'],
-        'Videos': ['.mp4', '.avi', '.mkv', '.mov'],
-    }
+    # --- Protokollierungsfunktionen im GUI ---
+    def append_log(self, prefix, message, tag=None):
+        """Fügt eine Zeile sicher in das Textfeld ein."""
+        timestamp = datetime.now().strftime('%H:%M:%S')
+        self.log_area.insert(tk.END, f"[{timestamp}] {prefix}: {message}\n", tag)
+        self.log_area.see(tk.END)
 
-    # Pruefung, ob das angegebene Zielverzeichnis existiert
-    if not os.path.exists(target_directory):
-        return False
+    def log_success(self, msg): self.append_log("✔ ERFOLG", msg, 'success')
+    def log_warn(self, msg):    self.append_log("⚠ WARNUNG", msg, 'warn')
+    def log_error(self, msg):   self.append_log("✖ FEHLER", msg, 'error')
+    def log_info(self, msg):    self.append_log("ℹ INFO", msg, 'info')
 
-    # Pfad fuer den Log-Ordner im Benutzerverzeichnis ermitteln und erstellen
-    user_home = os.path.expanduser("~")
-    log_directory = os.path.join(user_home, "Download_Organizer_Logs")
-    os.makedirs(log_directory, exist_ok=True)
-    log_file_path = os.path.join(log_directory, "sort_report.txt")
-    
-    # Namen des aktuell laufenden Skripts ermitteln, um Selbstverschiebung zu verhindern
-    current_script_name = os.path.basename(sys.argv[0]) if sys.argv else ""
-    
-    # Vorbereitung des Log-Headers fuer diesen Sortierdurchlauf
-    log_lines = []
-    log_lines.append("=== Dateisortierung gestartet ===")
-    log_lines.append(f"Zeitpunkt: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    log_lines.append(f"Zielverzeichnis: {target_directory}")
-    log_lines.append("-" * 50)
+    # --- Logik des Sortierers ---
+    def is_file_ready(self, file_path):
+        try:
+            with open(file_path, 'rb'): return True
+        except IOError:
+            return False
 
-    # Initialisierung der Zaehler fuer die Statistik
-    stats = {"erfolgreich": 0, "fehlgeschlagen": 0, "nicht_unterstuetzt": 0}
-    any_files_processed = False
+    def execute_sorting(self, silent_on_empty=False):
+        """Hauptfunktion zum Verschieben von Dateien."""
+        FILE_TYPES = {
+            'Bilder': ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp'],
+            'Dokumente': ['.pdf', '.docx', '.xlsx', '.txt', '.pptx', '.csv'],
+            'Skripte': ['.py', '.cs', '.sh', '.bat', '.json', '.html', '.css'],
+            'Installer': ['.exe', '.msi', '.zip', '.rar', '.7z'],
+            'Musik': ['.mp3', '.wav', '.flac', '.aac'],
+            'Videos': ['.mp4', '.avi', '.mkv', '.mov'],
+        }
 
-    try:
-        # Optimiertes Einlesen des Verzeichnisses mittels os.scandir fuer bessere Performance
-        entries = list(os.scandir(target_directory))
-    except Exception:
-        return False
+        if not os.path.exists(self.target_dir):
+            self.log_error(f"Zielverzeichnis existiert nicht: {self.target_dir}")
+            return 0
 
-    # Iteration durch alle gefundenen Eintraege im Verzeichnis
-    for entry in entries:
-        # Ordner werden bei der Verarbeitung uebersprungen
-        if not entry.is_file():
-            continue
+        current_script_name = os.path.basename(sys.argv[0]) if sys.argv else ""
+        stats = {"erfolgreich": 0, "fehlgeschlagen": 0}
+        any_files_found = False
+
+        try:
+            entries = list(os.scandir(self.target_dir))
+        except Exception as e:
+            self.log_error(f"Verzeichnis konnte nicht gelesen werden: {e}")
+            return 0
+
+        for entry in entries:
+            if not entry.is_file() or entry.name == current_script_name:
+                continue
+
+            file_ext = os.path.splitext(entry.name)[1].lower()
             
-        # Das eigene Skript wird nicht verschoben
-        if entry.name == current_script_name:
-            continue
+            for folder_name, extensions in FILE_TYPES.items():
+                if file_ext in extensions:
+                    any_files_found = True
+                    
+                    if not self.is_file_ready(entry.path):
+                        self.log_warn(f"Datei vom System blockiert (wird noch heruntergeladen?): {entry.name}")
+                        stats["fehlgeschlagen"] += 1
+                        break
 
-        # Extraktion und Normalisierung der Dateiendung zur Kategorisierung
-        file_ext = os.path.splitext(entry.name)[1].lower()
-        kategorie_gefunden = False
+                    destination_folder = os.path.join(self.target_dir, folder_name)
+                    os.makedirs(destination_folder, exist_ok=True)
 
-        # Abgleich der Dateiendung mit den definierten Kategorien
-        for folder_name, extensions in FILE_TYPES.items():
-            if file_ext in extensions:
-                kategorie_gefunden = True
-                any_files_processed = True
-                
-                # Pruefung, ob die Datei bereit ist oder noch heruntergeladen wird
-                if not is_file_ready(entry.path):
-                    log_lines.append(f"[GEBLOCKT] {entry.name} wird noch verwendet.")
-                    stats["fehlgeschlagen"] += 1
+                    try:
+                        shutil.move(entry.path, os.path.join(destination_folder, entry.name))
+                        self.log_success(f"Verschoben: {entry.name} ➔ {folder_name}/")
+                        stats["erfolgreich"] += 1
+                    except Exception as e:
+                        self.log_error(f"Fehler beim Verschieben von {entry.name}: {e}")
+                        stats["fehlgeschlagen"] += 1
                     break
 
-                # Erstellung des Zielordners, falls dieser noch nicht existiert
-                destination_folder = os.path.join(target_directory, folder_name)
-                os.makedirs(destination_folder, exist_ok=True)
+        if not any_files_found and not silent_on_empty:
+            self.log_info("Keine neuen Dateien zum Sortieren gefunden.")
+            
+        return stats["erfolgreich"]
 
-                try:
-                    # Verschieben der Datei in den entsprechenden Kategorieordner
-                    shutil.move(entry.path, os.path.join(destination_folder, entry.name))
-                    log_lines.append(f"[ERFOLG] {entry.name} -> {folder_name}/")
-                    stats["erfolgreich"] += 1
-                except Exception as e:
-                    # Protokollierung von Fehlern, falls das Verschieben fehlschlagt
-                    log_lines.append(f"[FEHLER] Konnte {entry.name} nicht verschieben: {e}")
-                    stats["fehlgeschlagen"] += 1
+    # --- Steuerung der Ausführungsmodi ---
+    def run_single_sort(self):
+        """Handler für den Button 'Jetzt sortieren'."""
+        self.status_lbl.config(text="Status: Einmalige Sortierung wird ausgeführt...")
+        self.root.update_idletasks()
+        count = self.execute_sorting(silent_on_empty=False)
+        if count > 0:
+            self.status_lbl.config(text=f"Status: Erfolgreich sortierte Dateien: {count}")
+        else:
+            self.status_lbl.config(text="Status: Überprüfung abgeschlossen, Ordner leer.")
+
+    def toggle_monitoring(self):
+        """Schaltet den Hintergrundmodus um (Start/Stopp)."""
+        if not self.is_monitoring:
+            # Hintergrundüberwachung starten
+            self.is_monitoring = True
+            self.btn_toggle_monitor.config(text="⏹ Überwachung stoppen", style='Stop.TButton')
+            self.btn_sort_now.config(state=tk.DISABLED)
+            self.log_info("Hintergrundüberwachung mit einem Intervall von 10 Sekunden gestartet.")
+            
+            # Endlosschleife in einem separaten Thread starten, damit das GUI nicht einfriert
+            self.monitor_thread = threading.Thread(target=self.monitoring_loop, daemon=True)
+            self.monitor_thread.start()
+        else:
+            # Hintergrundüberwachung stoppen
+            self.is_monitoring = False
+            self.btn_toggle_monitor.config(text="🔄 Hintergrundmodus starten", style='Start.TButton')
+            self.btn_sort_now.config(state=tk.NORMAL)
+            self.status_lbl.config(text="Status: Hintergrundüberwachung gestoppt.")
+            self.log_info("Hintergrundüberwachung deaktiviert.")
+
+       def monitoring_loop(self):
+        """Überwachungsschleife, die im Hintergrund läuft."""
+        while self.is_monitoring:
+            
+                        for _ in range(100):
+                if not self.is_monitoring:
+                    break
+                # Jede Sekunde den Countdown-Text aktualisieren
+                if _% 10 == 0:
+                    countdown = 10 - (_//10)
+                    self.status_lbl.config(text=f"Status: Überwachung aktiv (Nächste Prüfung in {countdown} Sek...)")
+                time.sleep(0.1)
+
+            
+            if not self.is_monitoring:
                 break
-        
-        # Zaehler erhoehen, wenn die Dateiendung in keiner Kategorie definiert ist
-        if not kategorie_gefunden:
-            stats["nicht_unterstuetzt"] += 1
+                
+            self.status_lbl.config(text="Status: Ordner wird gescannt...")
+            count = self.execute_sorting(silent_on_empty=True)
+            if count > 0:
+                self.log_info(f"Hintergrundmodus: Automatisch aufgeräumte Dateien: {count}")
 
-    # Wenn keine relevanten Dateien gefunden wurden, wird der Vorgang abgebrochen
-    if not any_files_processed:
-        return False
-
-    # Zusammenfassung des Berichts fuer die Logdatei erstellen
-    log_lines.append("-" * 50)
-    log_lines.append("=== BEREINIGUNG ABGESCHLOSSEN ===")
-    log_lines.append(f"  Erfolgreich sortiert:  {stats['erfolgreich']}")
-    log_lines.append(f"  Nicht unterstützt:     {stats['nicht_unterstuetzt']}")
-    log_lines.append(f"  Fehlgeschlagen:        {stats['fehlgeschlagen']}")
-    log_lines.append("-" * 50)
-    
-    # Statusmeldung basierend auf dem Erfolg der Operationen festlegen
-    if stats["fehlgeschlagen"] == 0:
-        log_lines.append("[STATUS] Alles bereit! Der Prozess wurde erfolgreich und ohne Fehler beendet.")
-    else:
-        log_lines.append("[STATUS] Prozess beendet, jedoch traten einige Fehler auf.")
-    log_lines.append("=" * 50 + "\n")
-
-    try:
-        # Schreiben der gesammelten Log-Zeilen in die Textdatei
-        with open(log_file_path, "a", encoding="utf-8") as log_file:
-            log_file.write("\n".join(log_lines) + "\n")
-    except Exception:
-        pass
-        
-    return stats["erfolgreich"]
 
 if __name__ == "__main__":
-    # Abfragen der Windows-Umgebungsvariable fuer das Benutzerprofil
-    user_profile = os.environ.get("USERPROFILE")
-    if not user_profile:
-        show_notification("Download Organizer", "Fehler: USERPROFILE-Umgebungsvariable nicht gefunden.", is_error=True)
-        sys.exit(1)
-        
-    # Pfad zum Standard-Download-Ordner des Benutzers definieren
-    TARGET = os.path.join(user_profile, "Downloads")
-
-    # Vorbereitung des Textes fuer das Modusauswahl-Fenster
-    dialog_text = (
-        "Wählen Sie den Ausführungsmodus für Download Organizer:\n\n"
-        "[JA] - Einmalige Ausführung (Jetzt sortieren)\n"
-        "[NEIN] - Permanenter Hintergrundmodus (Ordner kontinuierlich überwachen)\n"
-        "[ABBRECHEN] - Programm beenden"
-    )
-    
-    # Anzeige der Modusauswahl beim Start des Programms
-    res = ctypes.windll.user32.MessageBoxW(
-        0, dialog_text, "Download Organizer - Modusauswahl", 
-        MB_YESNOCANCEL | MB_ICONINFORMATION | MB_SETFOREGROUND
-    )
-
-    # Logik fuer die einmalige Ausfuehrung (Button JA)
-    if res == IDYES:
-        anzahl = sort_files(TARGET)
-        if anzahl and anzahl > 0:
-            show_notification("Download Organizer", f"Sortierung abgeschlossen!\n{anzahl} Dateien erfolgreich sortiert.")
-        else:
-            show_notification("Download Organizer", "Sortierung abgeschlossen! Keine neuen Dateien zum Sortieren gefunden.")
-            
-    # Logik fuer den permanenten Hintergrundmodus (Button NEIN)
-    elif res == IDNO:
-        show_notification("Download Organizer", "Hintergrundüberwachung wurde erfolgreich gestartet!\nDas Programm läuft nun unsichtbar im Hintergrund.")
-        
-        # Endlosschleife fuer die kontinuierliche Ueberwachung im Hintergrund
-        while True:
-            # Sortierung ausfuehren; Benachrichtigungen im Loop unterdrueckt, um Blockaden zu vermeiden
-            sort_files(TARGET)
-            # 10 Sekunden Pause vor dem naechsten Pruefdurchlauf
-            time.sleep(10)
-            
-    # Programm beenden, wenn Abbrechen oder Schliessen gewaehlt wurde
-    else:
-        sys.exit(0)
+    root = tk.Tk()
+    app = DownloadOrganizerGUI(root)
+    root.mainloop()
