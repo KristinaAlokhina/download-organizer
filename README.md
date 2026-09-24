@@ -59,7 +59,7 @@ Es wird lediglich eine installierte Python 3.x Umgebung benötigt (Tkinter ist s
    ```
 3. Die Anwendung starten:
    ```bash
-   python main.py
+   Organizer.py
    ```
 
 ---
@@ -104,5 +104,5 @@ Only a standard local installation of Python 3.x is required (Tkinter comes pre-
    ```
 3. Run the desktop setup:
    ```bash
-   python main.py
+   Organizer.py
    ```
