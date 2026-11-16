@@ -1,13 +1,30 @@
-&#x20;\<p align="center">   \<ins>\<b>\<kbd>&nbsp;DESKTOP APPLICATION · v3.1.0&nbsp;\</kbd>\</b>\</ins> \</p>
+<p align="center">
+  <ins><b><kbd>&nbsp;DESKTOP APPLICATION · v3.1.0&nbsp;</kbd></b></ins>
+</p>
 
-\<h1 align="center">   🎯 DOWNLOAD ORGANIZER \</h1>
+<h1 align="center" style="font-size: 2.5rem; font-weight: 900; color: #1a1a1a; margin-top: 10px; margin-bottom: 10px; border-bottom: none;">
+  🎯 DOWNLOAD ORGANIZER
+</h1>
 
-\<p align="center">   \<strong>A smarter way to organize your downloads.\</strong>   \<br>   \<i>A lightweight desktop application built with Python and Tkinter, featuring automated file sorting, background monitoring, and a clean graphical interface.\</i> \</p>
+<p align="center">
+  <strong>A smarter way to organize your downloads.</strong>
+  <br />
+  <i>A lightweight desktop application built with Python and Tkinter, featuring automated file sorting, background monitoring, and a clean graphical interface.</i>
+</p>
 
-\<p align="center">   \<a href="#-deutsch">🇩🇪 Deutsch\</a> •   \<a href="#-english">🇺🇸 English\</a> •   \<a href="#-русский">🇷🇺 Русский\</a> •   \<a href="#-українська">🇺🇦 Українська\</a> \</p>
+<p align="center">
+  <a href="#-deutsch">🇩🇪 Deutsch</a> •
+  <a href="#-english">🇺🇸 English</a> •
+  <a href="#-русский">🇷🇺 Русский</a> •
+  <a href="#-українська">🇺🇦 Українська</a>
+</p>
 
-\<p align="center">   \<kbd>Python\</kbd>   \<kbd>Tkinter\</kbd>   \<kbd>Multithreading\</kbd>   \<kbd>Windows\</kbd> \</p>
-
+<p align="center">
+  <kbd>Python</kbd>
+  <kbd>Tkinter</kbd>
+  <kbd>Multithreading</kbd>
+  <kbd>Windows</kbd>
+</p>
 
 ---
 
