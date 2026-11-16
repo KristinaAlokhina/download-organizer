@@ -5,18 +5,19 @@ import time
 import threading
 from datetime import datetime
 import tkinter as tk
-from tkinter import ttk, scrolledtext
+from tkinter import ttk, scrolledtext, filedialog
 
 class DownloadOrganizerGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("Download Organizer v3.0")
-        self.root.geometry("650x450")
-        self.root.minsize(550, 350)
+        self.root.title("Download Organizer v3.1")
+        self.root.geometry("680x480")
+        self.root.minsize(550, 380)
         
         # Steuerungsvariablen
         self.is_monitoring = False
-        self.target_dir = self.get_target_directory()
+        self.target_dir = self.get_default_target_directory()
+        self.monitor_thread = None
         
         # Design-Stile konfigurieren
         self.setup_styles()
@@ -26,7 +27,7 @@ class DownloadOrganizerGUI:
         # Begrüßungsnachricht ausgeben
         self.log_info(f"Programm initialisiert. Zielverzeichnis: {self.target_dir}")
 
-    def get_target_directory(self):
+    def get_default_target_directory(self):
         """Ermittelt den Pfad zum Download-Ordner des Benutzers."""
         user_profile = os.environ.get("USERPROFILE")
         if not user_profile:
@@ -59,12 +60,19 @@ class DownloadOrganizerGUI:
         main_frame = ttk.Frame(self.root, padding="15")
         main_frame.pack(fill=tk.BOTH, expand=True)
         
-        # Titel und Pfad
+        # Titel
         header_lbl = ttk.Label(main_frame, text="Download Organizer", style='Header.TLabel')
         header_lbl.pack(anchor=tk.W, pady=(0, 2))
         
-        path_lbl = ttk.Label(main_frame, text=f"Überwachtes Verzeichnis: {self.target_dir}", foreground='#7f8c8d')
-        path_lbl.pack(anchor=tk.W, pady=(0, 15))
+        # Pfad-Anzeige & Änderungs-Button
+        path_frame = ttk.Frame(main_frame)
+        path_frame.pack(fill=tk.X, pady=(0, 15))
+        
+        self.path_lbl = ttk.Label(path_frame, text=f"Überwachtes Verzeichnis: {self.target_dir}", foreground='#7f8c8d')
+        self.path_lbl.pack(side=tk.LEFT, anchor=tk.W)
+        
+        btn_change_dir = ttk.Button(path_frame, text="📁 Ordner wählen", command=self.change_directory)
+        btn_change_dir.pack(side=tk.RIGHT)
         
         # Aktionsleiste mit Buttons
         btn_frame = ttk.Frame(main_frame)
@@ -90,6 +98,18 @@ class DownloadOrganizerGUI:
         self.log_area.tag_config('error', foreground='#e74c3c')
         self.log_area.tag_config('info', foreground='#3498db')
 
+    def change_directory(self):
+        """Ermöglicht die Auswahl eines benutzerdefinierten Ordners."""
+        if self.is_monitoring:
+            self.log_warn("Bitte stoppen Sie die Überwachung vor dem Ändern des Ordners.")
+            return
+        
+        new_dir = filedialog.askdirectory(initialdir=self.target_dir, title="Zielverzeichnis auswählen")
+        if new_dir:
+            self.target_dir = new_dir
+            self.path_lbl.config(text=f"Überwachtes Verzeichnis: {self.target_dir}")
+            self.log_info(f"Zielverzeichnis geändert zu: {self.target_dir}")
+
     def append_log(self, prefix, message, tag=None):
         """Fügt eine Zeile sicher in das Textfeld ein."""
         timestamp = datetime.now().strftime('%H:%M:%S')
@@ -101,9 +121,14 @@ class DownloadOrganizerGUI:
     def log_error(self, msg):   self.append_log("✖ FEHLER", msg, 'error')
     def log_info(self, msg):    self.append_log("ℹ INFO", msg, 'info')
 
+    def update_status_safe(self, text):
+        """Aktualisiert die Statusleiste threadsicher aus jedem Thread heraus."""
+        self.root.after(0, lambda: self.status_lbl.config(text=text))
+
     def is_file_ready(self, file_path):
         try:
-            with open(file_path, 'rb'): return True
+            with open(file_path, 'rb'): 
+                return True
         except IOError:
             return False
 
@@ -150,9 +175,20 @@ class DownloadOrganizerGUI:
                     destination_folder = os.path.join(self.target_dir, folder_name)
                     os.makedirs(destination_folder, exist_ok=True)
 
+                    dest_path = os.path.join(destination_folder, entry.name)
+                    
+                    # Schutz vor Überschreibung bei gleichem Dateinamen
+                    if os.path.exists(dest_path):
+                        base, ext = os.path.splitext(entry.name)
+                        counter = 1
+                        while os.path.exists(dest_path):
+                            dest_path = os.path.join(destination_folder, f"{base}_{counter}{ext}")
+                            counter += 1
+
                     try:
-                        shutil.move(entry.path, os.path.join(destination_folder, entry.name))
-                        self.log_success(f"Verschoben: {entry.name} ➔ {folder_name}/")
+                        shutil.move(entry.path, dest_path)
+                        new_name = os.path.basename(dest_path)
+                        self.log_success(f"Verschoben: {new_name} ➔ {folder_name}/")
                         stats["erfolgreich"] += 1
                     except Exception as e:
                         self.log_error(f"Fehler beim Verschieben von {entry.name}: {e}")
@@ -199,13 +235,13 @@ class DownloadOrganizerGUI:
                     break
                 if _ % 10 == 0:
                     countdown = 10 - (_ // 10)
-                    self.status_lbl.config(text=f"Status: Überwachung aktiv (Nächste Prüfung in {countdown} Sek...)")
+                    self.update_status_safe(f"Status: Überwachung aktiv (Nächste Prüfung in {countdown} Sek...)")
                 time.sleep(0.1)
             
             if not self.is_monitoring:
                 break
                 
-            self.status_lbl.config(text="Status: Ordner wird gescannt...")
+            self.update_status_safe("Status: Ordner wird gescannt...")
             count = self.execute_sorting(silent_on_empty=True)
             if count > 0:
                 self.log_info(f"Hintergrundmodus: Automatisch aufgeräumte Dateien: {count}")
@@ -214,3 +250,4 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = DownloadOrganizerGUI(root)
     root.mainloop()
+    
